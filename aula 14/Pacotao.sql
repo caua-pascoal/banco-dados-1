@@ -1,0 +1,137 @@
+USE basevendasv2;
+-- ---------------
+
+-- 1
+-- SELECT
+--     DATE_FORMAT(v.data_venda, '%d/%m/%Y') as data,
+--     sum(pv.quantidade) AS quantidade_total
+-- FROM venda v
+-- JOIN produto_vendido pv ON v.id = pv.venda_id
+-- WHERE
+--     pv.produto_id IN ( SELECT p.id FROM produto p WHERE SUBSTRING(p.descricao,1,1) IN ('A', 'C', 'D') ) AND
+--     v.cliente_id IN ( SELECT c.id FROM cliente c
+--                         JOIN bairro b on c.bairro_id = b.id
+--                         JOIN cidade ci on ci.id = b.cidade_id 
+--                         WHERE ci.nome IN ('nova friburgo', 'cantagalo', 'cordeiro') )
+-- GROUP BY v.data_venda
+-- HAVING quantidade_total > 5
+-- ORDER BY quantidade_total DESC
+-- LIMIT 3;
+
+-- 2
+-- SELECT f.nome as fornecedor
+-- FROM fornecedor f
+-- JOIN produto p on p.fornecedor_id = f.id
+-- JOIN produto_vendido pv on p.id = pv.produto_id
+-- JOIN venda v on v.id = pv.venda_id
+-- JOIN tipo_produto tp on tp.id = p.tipo_produto_id
+-- JOIN cliente c on v.cliente_id = c.id
+-- WHERE
+--     v.data_venda like '2006%' AND -- Vendas apenas de 2006
+--     c.nome like '% %' AND -- Clientes com nome composto
+--     tp.descricao = 'MEDICAMENTOS' -- Apenas do tipo medicamentos
+-- GROUP BY f.nome
+-- HAVING SUM(pv.quantidade) > 500
+-- ORDER BY SUM(pv.quantidade) DESC
+-- LIMIT 3;
+
+-- 3
+-- SELECT CONCAT( MONTH(v.data_venda), '/', YEAR(v.data_venda) ) as mes_ano,
+--     SUM(v.valor_total) vendas
+-- FROM venda v
+-- GROUP BY mes_ano
+-- ORDER BY vendas DESC
+
+-- 4
+-- SELECT ve.nome, SUM(ve.comissao_percentual * v.valor_total) as valor_acumulado
+-- FROM vendedor ve
+-- JOIN cliente c on c.vendedor_id = ve.id
+-- JOIN venda v on v.cliente_id = c.id
+-- JOIN bairro b on b.id = c.bairro_id
+-- JOIN cidade ci on ci.id = b.cidade_id
+-- WHERE
+--     NOT (ci.nome = 'carmo' OR ci.nome = 'cordeiro')
+-- GROUP BY ve.id
+-- HAVING valor_acumulado > 3000
+
+-- 5
+-- SELECT p.descricao as nome, SUM(pv.quantidade * pv.valor_unitario) as somatorio
+-- FROM produto p
+-- JOIN produto_vendido pv on pv.produto_id = p.id
+-- WHERE
+--     pv.id IN ( SELECT v.id FROM venda v 
+--                 JOIN cliente c on c.id = v.cliente_id
+--                 JOIN vendedor ve on ve.id = c.vendedor_id
+--                 WHERE ve.nome = "PAULO ROBERTO"    
+--             )
+-- GROUP BY p.id
+-- HAVING somatorio > 500
+-- ORDER BY somatorio desc
+-- LIMIT 10
+
+-- 6
+-- SELECT p.descricao
+-- FROM produto p
+-- JOIN produto_vendido pv on p.id = pv.produto_id
+-- JOIN venda v on pv.venda_id = v.id
+-- JOIN cliente c on c.id = v.cliente_id
+-- JOIN bairro b on b.id = c.bairro_id
+-- JOIN cidade ci on ci.id = b.cidade_id
+-- JOIN uf on uf.id = ci.uf_id
+-- WHERE
+--     uf.sigla IN ('SP', 'MG', 'RJ') AND
+--     v.data_venda like '2006%'
+-- GROUP BY p.id
+-- HAVING COUNT(p.id) > 10
+-- ORDER BY COUNT(p.id) DESC
+-- LIMIT 5
+
+-- 7 
+-- SELECT c.nome, SUM(v.valor_total) as somatorio 
+-- FROM cliente c 
+-- JOIN venda v on v.cliente_id = c.id
+-- JOIN produto_vendido pv on pv.venda_id = v.id
+-- JOIN produto p on p.id = pv.produto_id
+-- JOIN fornecedor f on p.fornecedor_id = p.id
+-- JOIN cidade ci on ci.id = f.cidade_id
+-- JOIN uf on ci.uf_id = uf.id
+-- WHERE uf.sigla = 'SP'
+-- GROUP BY c.id
+-- HAVING somatorio >= 2000
+-- ORDER BY somatorio DESC
+-- LIMIT 5
+
+-- 8
+-- SELECT uf.sigla, SUM(v.valor_total) as valor_total
+-- FROm uf
+-- JOIN cidade ci on ci.uf_id = uf.id
+-- JOIN bairro b on b.cidade_id = ci.id
+-- JOIN cliente c on c.bairro_id = b.id
+-- JOIN venda v on v.cliente_id = c.id
+-- WHERE ( SUBSTRING(ci.nome, -1, 1) = 'A' OR SUBSTRING(ci.nome, -1, 1) = 'O' )
+--     AND NOT LOCATE( ' ', ci.nome ) = 0
+-- GROUP BY uf.sigla;
+
+-- 9
+-- SELECT f.nome
+-- FROM fornecedor f
+-- JOIN produto p on p.fornecedor_id = f.id
+-- JOIN produto_vendido pv on pv.produto_id = p.id
+-- JOIN venda v on v.id = pv.venda_id
+-- WHERE v.data_venda LIKE '2006%'
+-- GROUP BY f.id
+-- ORDER BY SUM(pv.valor_unitario*pv.quantidade) DESC
+-- LIMIT 1
+
+-- 10
+-- SELECT ve.nome
+-- FROM vendedor ve
+-- JOIN cliente c on c.vendedor_id = ve.id
+-- JOIN venda v on c.id = v.cliente_id
+-- JOIN produto_vendido pv on pv.venda_id = v.id
+-- JOIN produto p on pv.produto_id = p.id
+-- WHERE v.data_venda like '2006%' AND
+--     p.estoque > ( SELECT AVG(p.estoque) FROM produto p )
+-- GROUP BY ve.id
+-- ORDER BY SUM(pv.quantidade) DESC
+-- LIMIT 1
